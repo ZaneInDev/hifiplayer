@@ -42,8 +42,8 @@ jobs:
           fi
           echo "Restoring Gradle Wrapper for version $VERSION"
           cd gradle/wrapper
-          curl --retry 3 -fsSL "https://services.gradle.org/distributions/gradle-${VERSION}-wrapper.jar" -o gradle-wrapper.jar
-          curl --retry 3 -fsSL "https://services.gradle.org/distributions/gradle-${VERSION}-wrapper.jar.sha256" -o gradle-wrapper.jar.sha256
+          curl --retry 3 -fsSL "https://raw.githubusercontent.com/gradle/gradle/v${VERSION}/gradle/wrapper/gradle-wrapper.jar" -o gradle-wrapper.jar
+          curl --retry 3 -fsSL "https://raw.githubusercontent.com/gradle/gradle/v${VERSION}/gradle/wrapper/gradle-wrapper.jar.sha256" -o gradle-wrapper.jar.sha256
           printf " gradle-wrapper.jar\n" >> gradle-wrapper.jar.sha256
           sha256sum --check gradle-wrapper.jar.sha256
           jar tf gradle-wrapper.jar > /dev/null
