@@ -31,21 +31,65 @@ jobs:
 
       - name: Restore Gradle Wrapper JAR
         run: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.properties ]; then
+          set -euo pipefail
+
+          PROPERTIES="gradle/wrapper/gradle-wrapper.properties"
+
+          if [ ! -f "$PROPERTIES" ]; then
             echo "Gradle wrapper properties are missing"
             exit 1
           fi
-          VERSION="$(grep -oE "gradle-[0-9]+([.][0-9]+)*-(bin|all)[.]zip" gradle/wrapper/gradle-wrapper.properties | head -n1 | cut -d- -f2)"
+
+          VERSION="$(sed -n 's#.*gradle-\([0-9][0-9.]*\)-\(bin\|all\)\.zip.*#\1#p' "$PROPERTIES" | head -n1)"
+
           if [ -z "$VERSION" ]; then
             echo "Could not detect Gradle version"
             exit 1
           fi
-          echo "Restoring Gradle Wrapper for version $VERSION"
-          cd gradle/wrapper
-          curl --retry 3 -fsSL "https://raw.githubusercontent.com/gradle/gradle/v${VERSION}/gradle/wrapper/gradle-wrapper.jar" -o gradle-wrapper.jar
-          jar tf gradle-wrapper.jar > /dev/null
-          echo "Gradle Wrapper successfully restored and verified"
 
+          echo "Preparing Gradle $VERSION"
+
+          WORKDIR="$RUNNER_TEMP/gradle-wrapper-recovery"
+          mkdir -p "$WORKDIR"
+          cd "$WORKDIR"
+
+          curl --retry 3 -fsSL \
+            "https://services.gradle.org/distributions/gradle-${VERSION}-bin.zip" \
+            -o gradle.zip
+
+          curl --retry 3 -fsSL \
+            "https://services.gradle.org/distributions/gradle-${VERSION}-bin.zip.sha256" \
+            -o gradle.zip.sha256
+
+          EXPECTED="$(tr -d '[:space:]' < gradle.zip.sha256)"
+
+          if ! echo "$EXPECTED" | grep -qE '^[a-fA-F0-9]{64}$'; then
+            echo "Invalid Gradle distribution checksum"
+            exit 1
+          fi
+
+          printf '%s  gradle.zip\n' "$EXPECTED" | sha256sum --check -
+
+          unzip -q gradle.zip
+
+          mkdir -p generator
+          cd generator
+
+          printf "rootProject.name = 'wrapper-generator'\n" > settings.gradle
+
+          "$WORKDIR/gradle-${VERSION}/bin/gradle" \
+            --no-daemon wrapper \
+            --gradle-version "$VERSION" \
+            --distribution-type bin
+
+          mkdir -p "$GITHUB_WORKSPACE/gradle/wrapper"
+
+          cp gradle/wrapper/gradle-wrapper.jar \
+            "$GITHUB_WORKSPACE/gradle/wrapper/gradle-wrapper.jar"
+
+          jar tf "$GITHUB_WORKSPACE/gradle/wrapper/gradle-wrapper.jar" > /dev/null
+
+          echo "Gradle Wrapper JAR generated and verified"
       - name: Build with Gradle
         run: ./gradlew assembleDebug
 
