@@ -29,6 +29,26 @@ jobs:
           echo "_JAVA_OPTIONS=[$_JAVA_OPTIONS]"
           echo "JAVA_TOOL_OPTIONS=[$JAVA_TOOL_OPTIONS]"
 
+      - name: Restore Gradle Wrapper JAR
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.properties ]; then
+            echo "Gradle wrapper properties are missing"
+            exit 1
+          fi
+          VERSION="$(grep -oE "gradle-[0-9]+([.][0-9]+)*-(bin|all)[.]zip" gradle/wrapper/gradle-wrapper.properties | head -n1 | cut -d- -f2)"
+          if [ -z "$VERSION" ]; then
+            echo "Could not detect Gradle version"
+            exit 1
+          fi
+          echo "Restoring Gradle Wrapper for version $VERSION"
+          cd gradle/wrapper
+          curl --retry 3 -fsSL "https://services.gradle.org/distributions/gradle-${VERSION}-wrapper.jar" -o gradle-wrapper.jar
+          curl --retry 3 -fsSL "https://services.gradle.org/distributions/gradle-${VERSION}-wrapper.jar.sha256" -o gradle-wrapper.jar.sha256
+          printf " gradle-wrapper.jar\n" >> gradle-wrapper.jar.sha256
+          sha256sum --check gradle-wrapper.jar.sha256
+          jar tf gradle-wrapper.jar > /dev/null
+          echo "Gradle Wrapper successfully restored and verified"
+
       - name: Build with Gradle
         run: ./gradlew assembleDebug
 
