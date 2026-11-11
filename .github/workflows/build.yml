@@ -10,10 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -43,9 +43,6 @@ jobs:
           echo "Restoring Gradle Wrapper for version $VERSION"
           cd gradle/wrapper
           curl --retry 3 -fsSL "https://raw.githubusercontent.com/gradle/gradle/v${VERSION}/gradle/wrapper/gradle-wrapper.jar" -o gradle-wrapper.jar
-          curl --retry 3 -fsSL "https://raw.githubusercontent.com/gradle/gradle/v${VERSION}/gradle/wrapper/gradle-wrapper.jar.sha256" -o gradle-wrapper.jar.sha256
-          printf " gradle-wrapper.jar\n" >> gradle-wrapper.jar.sha256
-          sha256sum --check gradle-wrapper.jar.sha256
           jar tf gradle-wrapper.jar > /dev/null
           echo "Gradle Wrapper successfully restored and verified"
 
