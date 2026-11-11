@@ -59,9 +59,9 @@ class UsbAudioDeviceManager(context: Context) {
     /** True if the device advertises a high-res-capable encoding (24/32-bit or float). */
     fun supportsHighRes(dac: UsbDacInfo): Boolean {
         val highResEncodings = setOf(
-            AudioDeviceInfo.ENCODING_PCM_24BIT_PACKED,
-            AudioDeviceInfo.ENCODING_PCM_32BIT,
-            AudioDeviceInfo.ENCODING_PCM_FLOAT
+            21,
+            22,
+            4
         )
         return dac.supportedEncodings.any { it in highResEncodings }
     }
