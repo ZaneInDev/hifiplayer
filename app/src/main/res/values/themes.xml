@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.HiFiPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#5DD6A5</item>
+        <item name="colorPrimaryVariant">#3FA67C</item>
+        <item name="colorOnPrimary">#000000</item>
+        <item name="colorSecondary">#5DD6A5</item>
+        <item name="android:statusBarColor">#0E0E12</item>
+        <item name="android:windowBackground">#0E0E12</item>
+    </style>
+</resources>
